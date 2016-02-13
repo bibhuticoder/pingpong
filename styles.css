@@ -1,0 +1,42 @@
+body{
+    
+    background-color: darkslategray;
+    overflow: hidden;
+}
+
+
+#canvas{
+    
+    cursor: default;
+    position: absolute;
+    top: 0;
+    left: 0;
+    background-color:white;
+    border-style: solid;
+    border-width: 1px;
+   
+       
+}
+
+#stop{
+    
+    position: absolute;
+    left:150;
+    top: 20;
+    z-index: 10;
+    
+    
+}
+
+#start{
+    
+    position: absolute;
+    left:200;
+    top: 20;
+    
+    z-index: 10;
+    
+}
+
+
+
