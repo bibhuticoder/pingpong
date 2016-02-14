@@ -4,10 +4,12 @@ $(window).load(function(){
  
     var canvas = $("#canvas")[0];
     var ctx = canvas.getContext('2d');
+    
+    
     var Width, Height;
     var i, j;
     var bricks;
-    var coins;
+    var bonuses;
     var row;
     var col;
     var timer;
@@ -16,13 +18,13 @@ $(window).load(function(){
     var brick; 
     var player; 
     var ball;
-    var coin;
+    var bonus;
      
     
     function start(){
         
         bricks = [];
-        coins = [];
+        bonuses = [];
         score = 0;
         colors = ['gray', 'dimgray']
         
@@ -73,9 +75,10 @@ $(window).load(function(){
         
     }
         
-        coin = {
+        bonus = {
         
-            color:"yellow",        
+            color:"yellow",
+            font:"bolder 18px Cursive",            
             size:5,
             speedY:10
         
@@ -118,7 +121,7 @@ $(window).load(function(){
         ctx.clearRect(0, 0, Width, Height);
         
         //draw ball
-        ctx.beginPath();
+        ctx.beginPath();        
         ctx.fillStyle = ball.color;
         ball.x += ball.speedX;
         ball.y += ball.speedY;
@@ -139,15 +142,15 @@ $(window).load(function(){
         drawBricks();
         
         //draw coins
-        if(coins.length > 0){
+        if(bonuses.length > 0){
             
-            for(i=0; i< coins.length; i++){
+            for(i=0; i< bonuses.length; i++){
                 
-                coins[i].y += coin.speedY;
+                bonuses[i].y += bonus.speedY;
                 
             }
             
-            drawCoins();
+            drawBonuses();
         }
         
         //draw score
@@ -176,8 +179,8 @@ $(window).load(function(){
         //RIGHT boundary check
         else if((ball.x + ball.size) > Width){
                         
-             ball.speedX = generateRandom(-3,-1);
-             ball.speedY = generateRandom(5,10);
+             ball.speedX = generateRandom(-3, 0);
+             ball.speedY = generateRandom(5, 10);
             
         }
         
@@ -201,17 +204,17 @@ $(window).load(function(){
             
             else{
                 
-                //at middle            
-                 ball.speedX = generateRandom(-10,10);
+                 //at middle            
+                 ball.speedX = generateRandom(-5, 5);
                  
             }
             
-            ball.speedY = generateRandom(-10,-5);
+            ball.speedY = generateRandom(-15,-10);
            
         }
         
         //BRICK collission check
-        else if(ball.y < 400) {
+        else if(ball.y < (row * brick.height)) {
             
             var bY = ball.y - ball.size;
             var bX = ball.x;
@@ -225,11 +228,11 @@ $(window).load(function(){
                     
                     bricks.splice(i,1);
                    
-                   if(bricks[i].color === "gray"){
-                        coins.push({x: brX - (brick.width/2), y: brY, color: "yellow"});                        
+                   if(generateRandom(0,1) === 1){
+                        bonuses.push({x: brX - (brick.width/2), y: brY, color: "black", text:"+1"});                        
                     }
-                    else if(bricks[i].color === "dimgray"){
-                        coins.push({x:brX - (brick.width/2), y: brY, color:"orange"});  
+                    else {
+                        bonuses.push({x:brX - (brick.width/2), y: brY, color:"red", text: "-1"});  
                     }
                     
                     ball.speedX = generateRandom(-10,10);
@@ -242,15 +245,33 @@ $(window).load(function(){
 
         }
         
-        //COIN collission check
-        else if(coins.length > 0){
+        //BONUS collission check
+        else if(bonuses.length > 0){
             
-            for(i=0; i< coins.length; i++){
+            for(i=0; i< bonuses.length; i++){
                 
-                if(coins[i].x > player.x && coins[i].x < (player.x + player.width) && coins[i].y > player.y ){
+                //if coins collide with player
+                if(bonuses[i].x > player.x && bonuses[i].x < (player.x + player.width) && bonuses[i].y > player.y ){
                     
-                    score++;
-                    coins.splice(i,1);
+                    if(bonuses[i].text === "+1"){
+                        
+                        score++;
+                        
+                    }
+                    else{
+                        
+                        score--;
+                    }
+                    
+                    
+                    bonuses.splice(i,1);
+                    
+                }
+                
+                //if coins fall
+                else if(bonuses[i].y > Height){
+                                        
+                    bonuses.splice(i,1);
                     
                 }
                 
@@ -285,7 +306,7 @@ $(window).load(function(){
     function generateBricks(){
         
             var bX, bY;        
-            var bricksHeight = 10 * brick.height;
+            var bricksHeight = generateRandom(8,12) * brick.height;
             var numBricks = (Width * bricksHeight)/(brick.height * brick.width);
             row = Width/brick.width;
             col = (numBricks * brick.width)/Width;
@@ -311,7 +332,7 @@ $(window).load(function(){
         for(length = bricks.length-1, i = length; i >= 0; i--){
             
             ctx.beginPath();
-            ctx.strokeStyle = "white";
+            ctx.strokeStyle = "whitesmoke";
             ctx.strokeRect(bricks[i].x, bricks[i].y, brick.width, brick.height);
             ctx.stroke();
             
@@ -325,20 +346,14 @@ $(window).load(function(){
         
     }
     
-    function drawCoins(){
+    function drawBonuses(){
                 
-        for(length = coins.length-1, i = length; i >= 0; i--){
-            
-            ctx.beginPath();
-            ctx.strokeStyle = "black";
-            ctx.arc(coins[i].x, coins[i].y, coin.size, 0, 360);
-            ctx.stroke();
-            
-            ctx.beginPath();
-            ctx.fillStyle = coins[i].color;
-            ctx.arc(coins[i].x, coins[i].y, coin.size, 0, 360);
-            ctx.fill();
-                    
+        for(length = bonuses.length-1, i = length; i >= 0; i--){
+ 
+            ctx.font = "bolder 18px Cursive";
+            ctx.fillStyle = bonuses[i].color;
+            ctx.fillText(bonuses[i].text, bonuses[i].x, bonuses[i].y);
+
         }
         
     }
