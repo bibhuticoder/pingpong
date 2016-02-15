@@ -409,7 +409,7 @@ $(window).load(function(){
             //show game over message
             var msg = "Game Over";
             ctx.font = "bolder 100px Cursive";
-            ctx.fillStyle = "red";
+            ctx.fillStyle = "whitesmoke";
             ctx.fillText(msg, Width/2 - (msg.length*100)/4, Height/2);
             
             //show start game button
@@ -446,7 +446,7 @@ $(window).load(function(){
             ctx.clearRect(0, 0, Width, Height);            
             draw();
             ctx.font = "bolder 100px Cursive";
-            ctx.fillStyle = "red";
+            ctx.fillStyle = "whitesmoke";
             if(num !== 0) ctx.fillText(num.toString(), Width/2, Height/2);
             else ctx.fillText("Go", Width/2, Height/2);
             ctx.fillText(num.toString(), Width/2, Height/2);

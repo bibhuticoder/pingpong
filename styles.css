@@ -13,12 +13,9 @@ body{
     
     cursor: default;
     position: absolute;
-    top: 50;
+    top: 52;
     left: 0;
-    background-color:white;
-    border-style: solid;
-    border-width: 1px;
-   
+    background-color:lightgray;
        
 }
 
@@ -26,10 +23,14 @@ body{
     
     height: 50px;
     width: 100%;
-    background-color: whitesmoke;
+    background-color: gray;
     position: absolute;
     left:0;
     top:0;
+        
+    border-bottom-style: solid;
+    border-bottom-color: black;
+    border-bottom-width: 2px;
     
 }
 
@@ -40,7 +41,7 @@ body{
     margin-left: 20px;
     line-height: 50px;
     font-size: 20px;
-    color: black;
+    color: whitesmoke;
     font-weight: bolder;
     
 }
@@ -52,7 +53,7 @@ body{
     margin-left: 20px;
     line-height: 50px;
     font-size: 20px;
-    color: maroon;
+    color: white;
     font-weight: bolder;
     
 }
@@ -68,10 +69,7 @@ body{
 
 #start{
     
-    position: absolute;
-    left:650;
-    top: 10;    
-    z-index: 10;
+    margin-left: 20px;
     padding: 10px;
     border-radius: 5px;
     outline: none;
