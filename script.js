@@ -4,21 +4,22 @@ $(window).load(function(){
  
     var canvas = $("#canvas")[0];
     var ctx = canvas.getContext('2d');
-    
-    
-    var Width, Height;
-    var i, j;
-    var bricks;
-    var bonuses;
-    var row;
-    var col;
-    var timer;
-    var score;
-    var colors;    
-    var brick; 
-    var player; 
-    var ball;
-    var bonus;
+        
+    var Width,
+        Height,
+        i, j,
+        bricks,
+        bonuses,
+        row,
+        col,
+        timer,
+        score, lives,
+        colors,    
+        brick,
+        player, 
+        ball,
+        bonus,
+        gameStarted;
      
     
     function start(){
@@ -26,6 +27,8 @@ $(window).load(function(){
         bricks = [];
         bonuses = [];
         score = 0;
+        lives = 3;
+        gameStarted = false;
         colors = ['gray', 'dimgray']
         
         brick = {
@@ -38,7 +41,8 @@ $(window).load(function(){
         
         player = {         
         
-            color:"saddlebrown",
+            color:"limegreen",
+            lineColor: "black",
             height:20,
             width:200,
             x:0,
@@ -46,7 +50,7 @@ $(window).load(function(){
 
             setY: function(){
 
-                this.y = Height - this.height*2;
+                this.y = Height - this.height*2 - $("#scoreBar").height();
             },
 
             setX: function(){
@@ -70,7 +74,7 @@ $(window).load(function(){
             },
 
             setY: function(){
-                this.y = ((col * brick.height) + brick.height); 
+                this.y = ((col * brick.height) + brick.height) + ball.size; 
             }
         
     }
@@ -83,37 +87,51 @@ $(window).load(function(){
             speedY:10
         
         }
-
-        setCanvasSize();
         
         player.setX();
         
         player.setY();
         
-        ball.setX();
-          
-        
-        $("#canvas").mousemove(function(e){       
-            player.x = e.pageX - player.width/2;                
-        });
-        
-        $("#stop").click(function(){       
-            clearInterval(timer);        
-        });
-    
-        $("#start").click(function(){       
-            timer = setInterval(draw, 30);        
-        });
+        ball.setX();         
         
         generateBricks();
         
-         ball.setY();
+        ball.setY();
         
         draw();
         
+        checkLife();
+        
+        
     }
     
-    start();
+    
+    $("#canvas").mousemove(function(e){   
+            
+        if(gameStarted) player.x = e.pageX - player.width/2; 
+            
+    });
+
+    $("#stop").click(function(){
+
+        clearInterval(timer);  
+        gameStarted = false;
+        
+    });
+
+    $("#start").click(function(){ 
+
+        if(!gameStarted){
+            $(this).css("visibility", "hidden");
+        }
+        
+        startCountDown();
+
+    });
+   
+    setCanvasSize();
+    
+    //start();
     
     function draw(){
         
@@ -123,8 +141,15 @@ $(window).load(function(){
         //draw ball
         ctx.beginPath();        
         ctx.fillStyle = ball.color;
-        ball.x += ball.speedX;
-        ball.y += ball.speedY;
+        
+        if(gameStarted){
+            
+            ball.x += ball.speedX;
+            ball.y += ball.speedY;
+            
+        }
+        
+        
         ctx.arc(ball.x, ball.y, ball.size, 0, 360);
         ctx.fill();
         
@@ -138,6 +163,11 @@ $(window).load(function(){
         ctx.beginPath();
         ctx.fillStyle = player.color;
         ctx.fillRect(player.x, player.y, player.width, player.height);
+        
+        ctx.beginPath();
+        ctx.strokeStyle = player.lineColor;
+        ctx.strokeRect(player.x, player.y, player.width - 1, player.height - 1);
+        ctx.stroke();
         
         drawBricks();
         
@@ -153,15 +183,7 @@ $(window).load(function(){
             drawBonuses();
         }
         
-        //draw score
-        ctx.fillStyle = "red";
-        ctx.font = "bold 20px Cursive";
-        ctx.fillText("Score : " + score, 20, 25);
-        
-        ctx.font = "10px Cursive";
-        ctx.fillText("X : " + ball.x + " Y : " + ball.y + ball.size + " > height : " + Height, 500, 25);
-        
-        
+         
         //check for collissions
         checkCollission();
     }
@@ -182,11 +204,10 @@ $(window).load(function(){
              ball.speedX = generateRandom(-3, 0);
              ball.speedY = generateRandom(5, 10);
             
-        }
+        }        
         
-        
-        //check collission with player
-        else if(ball.x > player.x && ball.x < (player.x+player.width) && (ball.y+ball.size) > player.y){
+        //Check collission with player
+        else if(ball.x > player.x && ball.x < (player.x+player.width) && (ball.y+ball.size) > player.y && (ball.y+ball.size) < (player.y + player.height)){
             
             //at right edge
             if((ball.x - ball.size/2) > (player.x + (3 * player.width)/4)){
@@ -228,12 +249,18 @@ $(window).load(function(){
                     
                     bricks.splice(i,1);
                    
-                   if(generateRandom(0,1) === 1){
-                        bonuses.push({x: brX - (brick.width/2), y: brY, color: "black", text:"+1"});                        
+                    var random = generateRandom(0,1);
+                    console.log("Rnd " + random);
+                    
+                   if(random === 1){
+                   
+                        bonuses.push({x: (brX + (brick.width/2)), y: brY, color: "black", text:"+1"});                        
                     }
                     else {
-                        bonuses.push({x:brX - (brick.width/2), y: brY, color:"red", text: "-1"});  
+                        bonuses.push({x:(brX + (brick.width/2)), y: brY, color:"red", text: "-1"});  
                     }
+                    
+                    
                     
                     ball.speedX = generateRandom(-10,10);
                     ball.speedY = generateRandom(5,10);
@@ -244,41 +271,7 @@ $(window).load(function(){
             }
 
         }
-        
-        //BONUS collission check
-        else if(bonuses.length > 0){
-            
-            for(i=0; i< bonuses.length; i++){
-                
-                //if coins collide with player
-                if(bonuses[i].x > player.x && bonuses[i].x < (player.x + player.width) && bonuses[i].y > player.y ){
-                    
-                    if(bonuses[i].text === "+1"){
-                        
-                        score++;
-                        
-                    }
-                    else{
-                        
-                        score--;
-                    }
-                    
-                    
-                    bonuses.splice(i,1);
-                    
-                }
-                
-                //if coins fall
-                else if(bonuses[i].y > Height){
-                                        
-                    bonuses.splice(i,1);
-                    
-                }
-                
-            }
-            
-        }
-        
+         
         //UPPER boundary check
         else if((ball.y - ball.size) < 0){
             
@@ -290,11 +283,40 @@ $(window).load(function(){
         //LOWER boundary check
         else if((ball.y) > Height){
             
-             clearInterval(timer);
-             alert("Dead");
-             start();
+             lives--;
+             checkLife();
             
-        }          
+        }  
+        
+        //BONUS collission check        
+        if(bonuses.length > 0){
+                        
+            for(i = 0; i < bonuses.length; i++){
+                
+                //if bonus collides crosses the y limit
+                if(bonuses[i].y > player.y ){
+                    
+                    if(bonuses[i].x > player.x && bonuses[i].x < (player.x + player.width)){
+                        
+                        if(bonuses[i].text === "+1") score++;  
+                        
+                        else{
+                          
+                            score--;
+                            if(score < 0 ) score = 0;                            
+                        } 
+                        
+                        updateScore();
+                        
+                    }
+                                      
+                    bonuses.splice(i,1);
+                    
+                }
+                
+            }
+            
+        }
                 
     }
     
@@ -314,7 +336,7 @@ $(window).load(function(){
 
             for(i = 0; i < row; i++){
 
-                for(j = 2; j < col; j++){
+                for(j = 0; j < col; j++){
 
                     bX = i * brick.width;
                     bY = j * brick.height;                    
@@ -348,7 +370,7 @@ $(window).load(function(){
     
     function drawBonuses(){
                 
-        for(length = bonuses.length-1, i = length; i >= 0; i--){
+        for(length = bonuses.length, i = 0; i < length; i++){
  
             ctx.font = "bolder 18px Cursive";
             ctx.fillStyle = bonuses[i].color;
@@ -360,20 +382,89 @@ $(window).load(function(){
             
     function setCanvasSize(){
         
-        Width = $(document).width();
-        Height = $(document).height();
-        
-        
-            
+        Width = $("body").width();
+        Height = $("body").height();
+                  
         $("#canvas").attr("width", Width);
         $("#canvas").attr("height", Height);
      
     }
     
+    function updateScore(){
+        
+        $("#score").text("Score : " + score);
+        
+    }
     
+    function checkLife(){
+   
+        if(lives < 0){
+            
+            lives = 0;
+            
+            clearInterval(timer);
+           
+            gameStarted = false;
+            
+            //show game over message
+            var msg = "Game Over";
+            ctx.font = "bolder 100px Cursive";
+            ctx.fillStyle = "red";
+            ctx.fillText(msg, Width/2 - (msg.length*100)/4, Height/2);
+            
+            //show start game button
+            $("#start").css("visibility", "visible");
+            
+           
+        }
+        else{
+            
+            if(gameStarted){
+                
+                 ball.setX();
+                 ball.setY(); 
+                 
+            }
+           
+            
+        }
+        
+        $("#lives").text("Lives : " + lives);
+        
+    }
     
-    
-    
-    
+    function startCountDown(){
+        
+        var num = 3;
+        start();
+        
+        var counter = setInterval(count, 1000);
+        
+        
+        function count(){
+            
+            ctx.clearRect(0, 0, Width, Height);            
+            draw();
+            ctx.font = "bolder 100px Cursive";
+            ctx.fillStyle = "red";
+            if(num !== 0) ctx.fillText(num.toString(), Width/2, Height/2);
+            else ctx.fillText("Go", Width/2, Height/2);
+            ctx.fillText(num.toString(), Width/2, Height/2);
+            num--;
+            
+            if(num < 0){
+                
+                clearInterval(counter);
+                
+                clearInterval(timer);
+                timer = setInterval(draw, 30); 
+                gameStarted = true;
+                
+            }
+            
+        }
+        
+    }
+        
 });
 	
